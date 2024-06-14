@@ -1,6 +1,5 @@
 package login.usermanagementsystem.config;
 
-import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -24,13 +23,5 @@ public class OdooConfig {
 
     public void setUserUid(Integer userUid) {
         this.userUid = userUid;
-    }
-
-    @PostConstruct
-    public void postConstruct() {
-        System.out.println("API Key: " + apiKey);
-        System.out.println("Base Path: " + basePath);
-        System.out.println("Database: " + database);
-        System.out.println("Username: " + username);
     }
 }
