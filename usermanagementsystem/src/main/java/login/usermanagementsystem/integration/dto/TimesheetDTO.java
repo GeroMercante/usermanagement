@@ -10,4 +10,8 @@ public class TimesheetDTO {
     private String date;
     private String description;
     private double hours;
+    // For Version 2
+    private int idEmployee;
+    private int idProject;
+    private int idTask;
 }

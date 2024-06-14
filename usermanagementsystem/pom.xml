@@ -75,11 +75,6 @@
 			<artifactId>xmlrpc-client</artifactId>
 			<version>3.1.3</version>
 		</dependency>
-		<dependency>
-			<groupId>login</groupId>
-			<artifactId>usermanagementsystem</artifactId>
-			<version>0.0.1</version>
-		</dependency>
 	</dependencies>
 
 	<build>

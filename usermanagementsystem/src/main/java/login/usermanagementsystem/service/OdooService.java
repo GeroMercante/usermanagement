@@ -1,6 +1,9 @@
 package login.usermanagementsystem.service;
 import login.usermanagementsystem.config.OdooConfig;
 import login.usermanagementsystem.integration.dto.EmployeeDTO;
+import login.usermanagementsystem.integration.dto.PeopleDTO;
+import login.usermanagementsystem.integration.dto.ProjectDTO;
+import login.usermanagementsystem.integration.dto.TaskDTO;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,11 +113,123 @@ public class OdooService {
         }
     }
 
-    // get de proyectos
+    public List<ProjectDTO> getAllProjects() {
+        List<ProjectDTO> projects = new ArrayList<>();
+        try {
+            Integer userUid = odooConfig.getUserUid();
+            if (userUid == null) {
+                userUid = authenticate();
+                odooConfig.setUserUid(userUid);
+            }
 
-    // get de tareas por id de proyecto
+            XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
+            config.setServerURL(new URL(odooConfig.getBasePath() + "/xmlrpc/2/object"));
+            XmlRpcClient client = new XmlRpcClient();
+            client.setConfig(config);
 
-    // get de empleados
+            Object[] searchParams = new Object[]{
+                    odooConfig.getDatabase(),
+                    userUid,
+                    odooConfig.getApiKey(),
+                    "project.project",
+                    "search_read",
+                    Collections.singletonList(Collections.emptyList()),
+                    new HashMap<String, Object>() {{
+                        put("fields", Arrays.asList("id", "name"));
+                    }}
+            };
+
+            Object[] result = (Object[]) client.execute("execute_kw", searchParams);
+            for (Object obj : result) {
+                Map<String, Object> project = (Map<String, Object>) obj;
+                ProjectDTO projectDTO = new ProjectDTO((Integer) project.get("id"), (String) project.get("name"));
+                projects.add(projectDTO);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return projects;
+    }
+
+    public List<TaskDTO> getTasksByProjectId(Integer projectId) {
+        List<TaskDTO> tasks = new ArrayList<>();
+        try {
+            Integer userUid = odooConfig.getUserUid();
+            if (userUid == null) {
+                userUid = authenticate();
+                odooConfig.setUserUid(userUid);
+            }
+
+            XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
+            config.setServerURL(new URL(odooConfig.getBasePath() + "/xmlrpc/2/object"));
+            XmlRpcClient client = new XmlRpcClient();
+            client.setConfig(config);
+
+            List<Object> criteria = Arrays.asList(
+                    Arrays.asList("project_id", "=", projectId)
+            );
+
+            Object[] searchParams = new Object[]{
+                    odooConfig.getDatabase(),
+                    userUid,
+                    odooConfig.getApiKey(),
+                    "project.task",
+                    "search_read",
+                    Collections.singletonList(criteria),
+                    new HashMap<String, Object>() {{
+                        put("fields", Arrays.asList("id", "name"));
+                    }}
+            };
+
+            Object[] result = (Object[]) client.execute("execute_kw", searchParams);
+            for (Object obj : result) {
+                Map<String, Object> task = (Map<String, Object>) obj;
+                TaskDTO taskDTO = new TaskDTO((Integer) task.get("id"), (String) task.get("name"));
+                tasks.add(taskDTO);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return tasks;
+    }
+
+    public List<PeopleDTO> getAllEmployees() {
+        List<PeopleDTO> employees = new ArrayList<>();
+        try {
+            Integer userUid = odooConfig.getUserUid();
+            if (userUid == null) {
+                userUid = authenticate();
+                odooConfig.setUserUid(userUid);
+            }
+
+            XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
+            config.setServerURL(new URL(odooConfig.getBasePath() + "/xmlrpc/2/object"));
+            XmlRpcClient client = new XmlRpcClient();
+            client.setConfig(config);
+
+            Object[] searchParams = new Object[]{
+                    odooConfig.getDatabase(),
+                    userUid,
+                    odooConfig.getApiKey(),
+                    "hr.employee",
+                    "search_read",
+                    Collections.singletonList(Collections.emptyList()),
+                    new HashMap<String, Object>() {{
+                        put("fields", Arrays.asList("id", "name"));
+                    }}
+            };
+
+            Object[] result = (Object[]) client.execute("execute_kw", searchParams);
+            for (Object obj : result) {
+                Map<String, Object> employee = (Map<String, Object>) obj;
+                PeopleDTO employeeDTO = new PeopleDTO((Integer) employee.get("id"), (String) employee.get("name"));
+                employees.add(employeeDTO);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return employees;
+    }
 
     public Integer findEmployeeIdByName(String employeeName) {
         try {
@@ -262,7 +377,4 @@ public class OdooService {
             return false;
         }
     }
-
-
-
 }

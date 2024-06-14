@@ -35,7 +35,8 @@ public class SecurityConfig {
         .csrf(AbstractHttpConfigurer::disable)
         .cors(Customizer.withDefaults())
         .authorizeHttpRequests(requests -> requests
-                .requestMatchers("/auth/**", "/public/**", "/odoo/**").permitAll()
+                .requestMatchers("/auth/**", "/public/**").permitAll()
+                .requestMatchers("/odoo/**").hasAnyAuthority("ADMIN")
                 .requestMatchers("/admin/**").hasAnyAuthority("ADMIN")
                 .requestMatchers("/user/**").hasAnyAuthority("USER")
                 .requestMatchers("/adminuser/**").hasAnyAuthority("ADMIN", "USER")

@@ -20,13 +20,16 @@ public class OdooAccessFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws IOException, ServletException {
+        String path = request.getRequestURI();
 
-        String model = request.getParameter("model");
-        String operation = request.getParameter("operation");
+        if (path.startsWith("/odoo")) {
+            String model = request.getParameter("model");
+            String operation = request.getParameter("operation");
 
-        if (model != null && operation != null && !odooAccessInterceptor.checkAccessRights(model, operation)) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
-            return;
+            if (model != null && operation != null && !odooAccessInterceptor.checkAccessRights(model, operation)) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
+                return;
+            }
         }
 
         filterChain.doFilter(request, response);
