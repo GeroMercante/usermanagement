@@ -29,63 +29,39 @@ public class SecurityConfig {
   @Autowired
   private JWTAuthFilter jwtAuthFilter;
 
-  /**
-   * Configura la cadena de filtros de seguridad.
-   * 
-   * @param httpSecurity objeto HttpSecurity para configurar la seguridad HTTP.
-   * @return SecurityFilterChain configurado.
-   * @throws Exception en caso de error durante la configuración.
-   */
   @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+  public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, OdooAccessFilter odooAccessFilter) throws Exception {
     httpSecurity
-        .csrf(AbstractHttpConfigurer::disable) // Deshabilita la protección CSRF
-        .cors(Customizer.withDefaults()) // Habilita CORS con la configuración predeterminada
+        .csrf(AbstractHttpConfigurer::disable)
+        .cors(Customizer.withDefaults())
         .authorizeHttpRequests(requests -> requests
-            .requestMatchers("/auth/**", "/public/**").permitAll() // Permite acceso sin autenticación a las URLs que empiecen con /auth/ y /public/
-            .requestMatchers("/admin/**").hasAnyAuthority("ADMIN") // Permite acceso a URLs que empiecen con /admin/ solo a usuarios con autoridad "ADMIN"
-            .requestMatchers("/user/**").hasAnyAuthority("USER") // Permite acceso a URLs que empiecen con /user/ solo a usuarios con autoridad "USER"
-            .requestMatchers("/adminuser/**").hasAnyAuthority("ADMIN", "USER") // Permite acceso a URLs que empiecen con /adminuser/ a usuarios con autoridad "ADMIN" o "USER"
-            .anyRequest().authenticated()) // Requiere autenticación para cualquier otra URL
-        .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Configura el manejo de sesiones para ser sin estado (stateless)
-        .authenticationProvider(authenticationProvider()) // Establece el proveedor de autenticación personalizado
-        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // Añade el filtro de autenticación JWT antes del filtro de autenticación de usuario y contraseña
-    
+                .requestMatchers("/auth/**", "/public/**", "/odoo/**").permitAll()
+                .requestMatchers("/admin/**").hasAnyAuthority("ADMIN")
+                .requestMatchers("/user/**").hasAnyAuthority("USER")
+                .requestMatchers("/adminuser/**").hasAnyAuthority("ADMIN", "USER")
+                .anyRequest().authenticated())
+            .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authenticationProvider(authenticationProvider())
+            .addFilterBefore(odooAccessFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
     return httpSecurity.build();
   }
 
-  /**
-   * Configura el proveedor de autenticación.
-   * 
-   * @return AuthenticationProvider configurado.
-   */
   @Bean
   public AuthenticationProvider authenticationProvider() {
     DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
-    daoAuthenticationProvider.setUserDetailsService(ourUsersDetailsService); // Establece el servicio de detalles de usuario personalizado
-    daoAuthenticationProvider.setPasswordEncoder(passwordEncoder()); // Establece el codificador de contraseñas
+    daoAuthenticationProvider.setUserDetailsService(ourUsersDetailsService);
+    daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
     return daoAuthenticationProvider;
   }
 
-  /**
-   * Configura el codificador de contraseñas.
-   * 
-   * @return PasswordEncoder configurado.
-   */
   @Bean
   public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder(); // Usa BCrypt para codificar las contraseñas
+    return new BCryptPasswordEncoder();
   }
 
-  /**
-   * Configura el administrador de autenticación.
-   * 
-   * @param authenticationConfiguration configuración de autenticación de Spring.
-   * @return AuthenticationManager configurado.
-   * @throws Exception en caso de error durante la configuración.
-   */
   @Bean
   public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-    return authenticationConfiguration.getAuthenticationManager(); // Obtiene y retorna el administrador de autenticación de la configuración de autenticación
+    return authenticationConfiguration.getAuthenticationManager();
   }
 }
